@@ -5,6 +5,7 @@ import com.jeonghyeon00.commit.graph.infrastructure.github.dto.response.SearchCo
 import org.springframework.stereotype.Service
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+import kotlin.math.round
 
 @Service
 class SvgService(
@@ -13,11 +14,11 @@ class SvgService(
     fun generateSvg(githubId: String): String {
         val weekData = getCommitCountGroupByLocalDate(githubId).sortedBy { it.first }
 
-        val svgWidth = 600
-        val svgHeight = 400
-        val padding = 100
-        val barWidth = 60
-        val barGap = 15
+        val svgWidth = 800
+        val svgHeight = 300
+        val padding = 60
+        val barWidth = 80
+        val barGap = 20
 
         val dateFormatter = DateTimeFormatter.ofPattern("MMM dd")
 
@@ -26,16 +27,30 @@ class SvgService(
 
         val svg = StringBuilder()
         svg.append("""
-        <svg width="$svgWidth" height="$svgHeight" xmlns="http://www.w3.org/2000/svg">
-        <style>
-            .bar { fill: #40c463; }
-            .bar:hover { fill: #2ea44f; }
-            .axis { stroke: #333; stroke-width: 2; }
-            .label { font-family: Arial, sans-serif; font-size: 12px; }
-            .title { font-family: Arial, sans-serif; font-size: 18px; font-weight: bold; }
-        </style>
-        <text x="${svgWidth / 2}" y="30" text-anchor="middle" class="title">$githubId's Commits in the Last Week</text>
+    <svg width="$svgWidth" height="$svgHeight" xmlns="http://www.w3.org/2000/svg">
+    <style>
+        .bar { fill: #40c463; }
+        .bar:hover { fill: #2ea44f; }
+        .axis { stroke: #8b949e; stroke-width: 1; }
+        .grid { stroke: #30363d; stroke-width: 1; }
+        .label { font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji"; font-size: 12px; fill: #8b949e; }
+        .title { font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji"; font-size: 18px; font-weight: bold; fill: #c9d1d9; }
+        .tick { font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji"; font-size: 12px; fill: #8b949e; }
+    </style>
+    <rect width="$svgWidth" height="$svgHeight" fill="#0d1117" />
+    <text x="${svgWidth / 2}" y="30" text-anchor="middle" class="title">$githubId's Commits in the Last Week</text>
     """.trimIndent())
+
+        // Draw y-axis grid and labels
+        val yTickCount = 5
+        for (i in 0..yTickCount) {
+            val y = svgHeight - padding - (i * (svgHeight - 2 * padding) / yTickCount)
+            val tickValue = round(i * maxCommits.toDouble() / yTickCount).toInt()
+            svg.append("""
+        <line x1="$padding" y1="$y" x2="${svgWidth - padding}" y2="$y" class="grid" />
+        <text x="${padding - 10}" y="${y + 5}" text-anchor="end" class="tick">$tickValue</text>
+        """.trimIndent())
+        }
 
         // Draw bars and labels
         weekData.forEachIndexed { index, (date, count) ->
@@ -44,21 +59,22 @@ class SvgService(
             val y = svgHeight - padding - barHeight
 
             svg.append("""
-            <rect class="bar" x="$x" y="$y" width="$barWidth" height="$barHeight">
-                <title>${date.format(DateTimeFormatter.ISO_LOCAL_DATE)}: $count commit(s)</title>
-            </rect>
-            <text x="${x + barWidth / 2}" y="${svgHeight - padding + 20}" text-anchor="middle" class="label">
-                ${date.format(dateFormatter)}
-            </text>
-            <text x="${x + barWidth / 2}" y="${y - 5}" text-anchor="middle" class="label">$count</text>
+        <rect class="bar" x="$x" y="$y" width="$barWidth" height="$barHeight" rx="4" ry="4">
+            <title>${date.format(DateTimeFormatter.ISO_LOCAL_DATE)}: $count commit(s)</title>
+        </rect>
+        <text x="${x + barWidth / 2}" y="${svgHeight - padding + 20}" text-anchor="middle" class="label">
+            ${date.format(dateFormatter)}
+        </text>
+        <text x="${x + barWidth / 2}" y="${y - 10}" text-anchor="middle" class="label" fill="#c9d1d9">$count</text>
         """.trimIndent())
         }
 
         // Draw axes
         svg.append("""
-        <line x1="$padding" y1="${svgHeight - padding}" x2="${svgWidth - padding}" y2="${svgHeight - padding}" class="axis" />
-        <line x1="$padding" y1="$padding" x2="$padding" y2="${svgHeight - padding}" class="axis" />
+    <line x1="$padding" y1="${svgHeight - padding}" x2="${svgWidth - padding}" y2="${svgHeight - padding}" class="axis" />
+    <line x1="$padding" y1="$padding" x2="$padding" y2="${svgHeight - padding}" class="axis" />
     """.trimIndent())
+
         svg.append("</svg>")
         return svg.toString()
     }
