@@ -1,5 +1,6 @@
 package com.jeonghyeon00.commit.graph.controller
 
+import com.jeonghyeon00.commit.graph.domain.Theme
 import com.jeonghyeon00.commit.graph.service.SvgService
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
@@ -12,7 +13,10 @@ class SvgController(
     private val svgService: SvgService
 ) {
     @GetMapping(produces = ["image/svg+xml"])
-    fun generateSvg(@RequestParam githubId: String): String {
-        return svgService.generateSvg(githubId)
+    fun generateSvg(
+        @RequestParam githubId: String,
+        @RequestParam theme: Theme?
+    ): String {
+        return svgService.generateSvg(githubId, theme)
     }
 }

@@ -1,5 +1,6 @@
 package com.jeonghyeon00.commit.graph.service
 
+import com.jeonghyeon00.commit.graph.domain.Theme
 import com.jeonghyeon00.commit.graph.infrastructure.github.GithubRestAPIClient
 import com.jeonghyeon00.commit.graph.infrastructure.github.dto.response.SearchCommitResponse
 import org.springframework.stereotype.Service
@@ -11,8 +12,9 @@ import kotlin.math.round
 class SvgService(
     private val githubRestAPIClient: GithubRestAPIClient
 ) {
-    fun generateSvg(githubId: String): String {
+    fun generateSvg(githubId: String, theme: Theme?): String {
         val weekData = getCommitCountGroupByLocalDate(githubId)
+        val selectedTheme = theme ?: Theme.DARK
 
         val svgWidth = 800
         val svgHeight = 300
@@ -25,19 +27,21 @@ class SvgService(
         val maxCommits = weekData.maxOfOrNull { it.second } ?: 1
         val yScale = (svgHeight - 2 * padding).toDouble() / maxCommits
 
+        val colors = getThemeColors(selectedTheme)
+
         val svg = StringBuilder()
         svg.append("""
     <svg width="$svgWidth" height="$svgHeight" xmlns="http://www.w3.org/2000/svg">
     <style>
-        .bar { fill: #40c463; }
-        .bar:hover { fill: #2ea44f; }
-        .axis { stroke: #8b949e; stroke-width: 1; }
-        .grid { stroke: #30363d; stroke-width: 1; }
-        .label { font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji"; font-size: 12px; fill: #8b949e; }
-        .title { font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji"; font-size: 18px; font-weight: bold; fill: #c9d1d9; }
-        .tick { font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji"; font-size: 12px; fill: #8b949e; }
+        .bar { fill: ${colors.barFill}; }
+        .bar:hover { fill: ${colors.barHover}; }
+        .axis { stroke: ${colors.axisColor}; stroke-width: 1; }
+        .grid { stroke: ${colors.gridColor}; stroke-width: 1; }
+        .label { font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji"; font-size: 12px; fill: ${colors.labelColor}; }
+        .title { font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji"; font-size: 18px; font-weight: bold; fill: ${colors.titleColor}; }
+        .tick { font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji"; font-size: 12px; fill: ${colors.tickColor}; }
     </style>
-    <rect width="$svgWidth" height="$svgHeight" fill="#0d1117" />
+    <rect width="$svgWidth" height="$svgHeight" fill="${colors.background}" />
     <text x="${svgWidth / 2}" y="30" text-anchor="middle" class="title">$githubId's Commits in the Last Week</text>
     """.trimIndent())
 
@@ -65,7 +69,7 @@ class SvgService(
         <text x="${x + barWidth / 2}" y="${svgHeight - padding + 20}" text-anchor="middle" class="label">
             ${date.format(dateFormatter)}
         </text>
-        <text x="${x + barWidth / 2}" y="${y - 10}" text-anchor="middle" class="label" fill="#c9d1d9">$count</text>
+        <text x="${x + barWidth / 2}" y="${y - 10}" text-anchor="middle" class="label" fill="${colors.countColor}">$count</text>
         """.trimIndent())
         }
 
@@ -78,6 +82,45 @@ class SvgService(
         svg.append("</svg>")
         return svg.toString()
     }
+
+    private fun getThemeColors(theme: Theme): ThemeColors {
+        return when (theme) {
+            Theme.LIGHT -> ThemeColors(
+                background = "#ffffff",
+                barFill = "#40c463",
+                barHover = "#2ea44f",
+                axisColor = "#24292e",
+                gridColor = "#e1e4e8",
+                labelColor = "#24292e",
+                titleColor = "#24292e",
+                tickColor = "#24292e",
+                countColor = "#24292e"
+            )
+            Theme.DARK -> ThemeColors(
+                background = "#0d1117",
+                barFill = "#40c463",
+                barHover = "#2ea44f",
+                axisColor = "#8b949e",
+                gridColor = "#30363d",
+                labelColor = "#8b949e",
+                titleColor = "#c9d1d9",
+                tickColor = "#8b949e",
+                countColor = "#c9d1d9"
+            )
+        }
+    }
+
+    data class ThemeColors(
+        val background: String,
+        val barFill: String,
+        val barHover: String,
+        val axisColor: String,
+        val gridColor: String,
+        val labelColor: String,
+        val titleColor: String,
+        val tickColor: String,
+        val countColor: String
+    )
 
     fun getCommitCountGroupByLocalDate(githubId: String): List<Pair<LocalDate, Int>> {
         var page = 0
