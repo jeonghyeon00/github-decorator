@@ -9,4 +9,6 @@ spring:
     open-in-view: false
 server:
   port: 8000
-
+github:
+  api:
+    token: put-your-github-token

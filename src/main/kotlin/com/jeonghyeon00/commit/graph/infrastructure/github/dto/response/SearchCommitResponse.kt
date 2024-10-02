@@ -4,9 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty
 import java.time.ZonedDateTime
 
 data class SearchCommitResponse(
-    @JsonProperty("total_count")
-    val totalCount: Long,
-    val items: List<Item>,
+    val items: List<Item>
 ) {
     data class Item(
         val commit: Commit
@@ -15,10 +13,13 @@ data class SearchCommitResponse(
             val author: Author
         ) {
             data class Author(
-                val date: ZonedDateTime,
+                @JsonProperty("date")
+                val zonedDateTime: ZonedDateTime,
                 val name: String,
                 val email: String
-            )
+            ) {
+                val localDate = zonedDateTime.toLocalDate()
+            }
         }
     }
 }
