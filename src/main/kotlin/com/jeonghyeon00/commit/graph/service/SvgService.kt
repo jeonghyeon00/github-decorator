@@ -12,7 +12,7 @@ class SvgService(
     private val githubRestAPIClient: GithubRestAPIClient
 ) {
     fun generateSvg(githubId: String): String {
-        val weekData = getCommitCountGroupByLocalDate(githubId).sortedBy { it.first }
+        val weekData = getCommitCountGroupByLocalDate(githubId)
 
         val svgWidth = 800
         val svgHeight = 300
@@ -20,7 +20,7 @@ class SvgService(
         val barWidth = 80
         val barGap = 20
 
-        val dateFormatter = DateTimeFormatter.ofPattern("MMM dd")
+        val dateFormatter = DateTimeFormatter.ofPattern("MM/dd")
 
         val maxCommits = weekData.maxOfOrNull { it.second } ?: 1
         val yScale = (svgHeight - 2 * padding).toDouble() / maxCommits
@@ -87,6 +87,13 @@ class SvgService(
             items.addAll(githubRestAPIClient.fetchSearchCommit(githubId, page).items)
         } while (items.last().commit.author.localDate.isBefore(LocalDate.now().minusWeeks(1)))
 
-        return items.groupBy { it.commit.author.localDate }.map { it.key to it.value.count() }
+        val commitMap = items.groupBy { it.commit.author.localDate }.mapValues { it.value.count() }
+
+        val last7Days = (0..6).map { LocalDate.now().minusDays(it.toLong()) }.reversed()
+
+        // add 0 for days without commits
+        return last7Days.map { date ->
+            date to (commitMap[date] ?: 0)
+        }
     }
 }
