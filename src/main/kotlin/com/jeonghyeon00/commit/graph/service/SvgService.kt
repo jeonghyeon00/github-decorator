@@ -91,6 +91,7 @@ class SvgService(
         val items = mutableListOf<SearchCommitResponse.Item>()
         do {
             page++
+            if(page >= 9) break
             items.addAll(githubRestAPIClient.fetchSearchCommit(githubId, page).items)
         } while (items.last().commit.author.localDate.isBefore(LocalDate.now().minusWeeks(1)))
 
