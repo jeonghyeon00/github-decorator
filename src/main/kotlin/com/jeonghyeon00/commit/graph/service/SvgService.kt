@@ -89,17 +89,26 @@ class SvgService(
     fun getCommitCountGroupByLocalDate(githubId: String): List<Pair<LocalDate, Int>> {
         var page = 0
         val items = mutableListOf<SearchCommitResponse.Item>()
-        do {
-            page++
-            if(page >= 9) break
-            items.addAll(githubRestAPIClient.fetchSearchCommit(githubId, page).items)
-        } while (items.last().commit.author.localDate.isBefore(LocalDate.now().minusWeeks(1)))
+        val oneWeekAgo = LocalDate.now().minusWeeks(1)
 
-        val commitMap = items.groupBy { it.commit.author.localDate }.mapValues { it.value.count() }
+        while (page <= 9) {
+            val response = githubRestAPIClient.fetchSearchCommit(githubId, page)
+            if (response.items.isEmpty()) break
+
+            items.addAll(response.items)
+
+            if (response.items.last().commit.author.localDate.isBefore(oneWeekAgo)) break
+
+            page++
+        }
+
+        val commitMap = items
+            .filter { it.commit.author.localDate.isAfter(oneWeekAgo) || it.commit.author.localDate.isEqual(oneWeekAgo) }
+            .groupBy { it.commit.author.localDate }
+            .mapValues { it.value.count() }
 
         val last7Days = (0..6).map { LocalDate.now().minusDays(it.toLong()) }.reversed()
 
-        // add 0 for days without commits
         return last7Days.map { date ->
             date to (commitMap[date] ?: 0)
         }
