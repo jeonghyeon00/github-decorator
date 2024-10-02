@@ -1,14 +1,13 @@
 spring:
   application:
     name: commit-graph
-  datasource:
-      url: jdbc:postgresql://localhost:22321/postgres
-      username: postgres
-      password: postgres
-  jpa:
-    open-in-view: false
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
 server:
   port: 8000
 github:
   api:
-    token: put-your-github-token
+    token: ${GITHUB_API_TOKEN}

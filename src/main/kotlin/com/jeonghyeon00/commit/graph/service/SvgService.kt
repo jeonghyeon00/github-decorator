@@ -1,8 +1,10 @@
 package com.jeonghyeon00.commit.graph.service
 
 import com.jeonghyeon00.commit.graph.domain.Theme
+import com.jeonghyeon00.commit.graph.domain.ThemeColors
 import com.jeonghyeon00.commit.graph.infrastructure.github.GithubRestAPIClient
 import com.jeonghyeon00.commit.graph.infrastructure.github.dto.response.SearchCommitResponse
+import org.springframework.cache.annotation.Cacheable
 import org.springframework.stereotype.Service
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -12,6 +14,7 @@ import kotlin.math.round
 class SvgService(
     private val githubRestAPIClient: GithubRestAPIClient
 ) {
+    @Cacheable("svg", key = "#githubId + #theme")
     fun generateSvg(githubId: String, theme: Theme?): String {
         val weekData = getCommitCountGroupByLocalDate(githubId)
         val selectedTheme = theme ?: Theme.DARK
@@ -27,7 +30,7 @@ class SvgService(
         val maxCommits = weekData.maxOfOrNull { it.second } ?: 1
         val yScale = (svgHeight - 2 * padding).toDouble() / maxCommits
 
-        val colors = getThemeColors(selectedTheme)
+        val colors = ThemeColors.getThemeColorByTheme(selectedTheme)
 
         val svg = StringBuilder()
         svg.append("""
@@ -82,45 +85,6 @@ class SvgService(
         svg.append("</svg>")
         return svg.toString()
     }
-
-    private fun getThemeColors(theme: Theme): ThemeColors {
-        return when (theme) {
-            Theme.LIGHT -> ThemeColors(
-                background = "#ffffff",
-                barFill = "#40c463",
-                barHover = "#2ea44f",
-                axisColor = "#24292e",
-                gridColor = "#e1e4e8",
-                labelColor = "#24292e",
-                titleColor = "#24292e",
-                tickColor = "#24292e",
-                countColor = "#24292e"
-            )
-            Theme.DARK -> ThemeColors(
-                background = "#0d1117",
-                barFill = "#40c463",
-                barHover = "#2ea44f",
-                axisColor = "#8b949e",
-                gridColor = "#30363d",
-                labelColor = "#8b949e",
-                titleColor = "#c9d1d9",
-                tickColor = "#8b949e",
-                countColor = "#c9d1d9"
-            )
-        }
-    }
-
-    data class ThemeColors(
-        val background: String,
-        val barFill: String,
-        val barHover: String,
-        val axisColor: String,
-        val gridColor: String,
-        val labelColor: String,
-        val titleColor: String,
-        val tickColor: String,
-        val countColor: String
-    )
 
     fun getCommitCountGroupByLocalDate(githubId: String): List<Pair<LocalDate, Int>> {
         var page = 0
