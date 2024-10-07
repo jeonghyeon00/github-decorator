@@ -128,23 +128,24 @@ class SvgService(
         }
     }
 
-//    @Cacheable("svgLanguage", key = "#githubId + #theme")
-fun generateMostUsedLanguagesSvg(githubId: String, theme: Theme): String {
-    val allLanguages = getMostUsedLanguages(githubId)
-    val totalSize = allLanguages.sumOf { it.second.size }.toFloat()
-    val topLanguages = allLanguages.take(3)
+    @Cacheable("svgLanguage", key = "#githubId + #theme")
+    fun generateMostUsedLanguagesSvg(githubId: String, theme: Theme): String {
+        val allLanguages = getMostUsedLanguages(githubId)
+        val totalSize = allLanguages.sumOf { it.second.size }.toFloat()
+        val topLanguages = allLanguages.take(3)
 
-    val backgroundColor = if (theme == Theme.DARK) "#0d1117" else "#f6f8fa"
-    val textColor = if (theme == Theme.DARK) "#c9d1d9" else "#24292e"
-    val subtextColor = if (theme == Theme.DARK) "#8b949e" else "#6a737d"
-    val strokeColor = if (theme == Theme.DARK) "#30363d" else "#e1e4e8"
+        val backgroundColor = if (theme == Theme.DARK) "#000000" else "#ffffff"
+        val textColor = if (theme == Theme.DARK) "#f5f5f7" else "#1d1d1f"
+        val subtextColor = if (theme == Theme.DARK) "#a1a1a6" else "#86868b"
+        val strokeColor = if (theme == Theme.DARK) "#1d1d1f" else "#d2d2d7"
 
-    val svgContent = """
-    <svg width="300" height="180" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+        val svgContent = """
+    <svg width="300" height="200" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
         <style>
-            .small { font: 10px 'Arial', sans-serif; }
-            .medium { font: bold 12px 'Arial', sans-serif; }
-            .large { font: bold 14px 'Arial', sans-serif; }
+            @import url('https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@400;600&amp;display=swap');
+            .small { font: 400 10px 'SF Pro Display', sans-serif; }
+            .medium { font: 600 14px 'SF Pro Display', sans-serif; }
+            .large { font: 600 16px 'SF Pro Display', sans-serif; }
             .background { fill: $backgroundColor; }
             .text { fill: $textColor; }
             .subtext { fill: $subtextColor; }
@@ -154,31 +155,33 @@ fun generateMostUsedLanguagesSvg(githubId: String, theme: Theme): String {
         <rect width="100%" height="100%" class="background"/>
         
         <!-- Title -->
-        <text x="150" y="20" class="large text" text-anchor="middle">Top Languages for $githubId</text>
+        <text x="150" y="30" class="large text" text-anchor="middle">Top Languages for $githubId</text>
         
-        ${topLanguages.mapIndexed { index, (lang, sizeAndColor) ->
-        val percentage = (sizeAndColor.size / totalSize * 100).toInt()
-        val yPos = 95
-        val xPos = 55 + index * 95
-        val rank = index + 1
-        val languageName = lang.value.lowercase()
-        val base64Image = encodeImageToBase64("static/images/${languageName}.svg")
-        """
+        ${
+            topLanguages.mapIndexed { index, (lang, sizeAndColor) ->
+                val percentage = (sizeAndColor.size / totalSize * 100).toInt()
+                val yPos = 105
+                val xPos = 55 + index * 95
+                val rank = index + 1
+                val languageName = lang.value.lowercase()
+                val base64Image = encodeImageToBase64("static/images/${languageName}.svg")
+                """
             <!-- ${lang.value} -->
             <g transform="translate($xPos, $yPos)">
-                <circle r="30" fill="${sizeAndColor.color}" stroke="$strokeColor" stroke-width="1.5"/>
+                <circle r="32" fill="${sizeAndColor.color}" stroke="$strokeColor" stroke-width="1"/>
                 <image x="-20" y="-20" width="40" height="40" xlink:href="data:image/svg+xml;base64,$base64Image"/>
                 <text y="-45" class="medium text" text-anchor="middle">#$rank</text>
-                <text y="55" class="small text" text-anchor="middle">${lang.value}</text>
-                <text y="70" class="small subtext" text-anchor="middle">$percentage%</text>
+                <text y="60" class="medium text" text-anchor="middle">${lang.value}</text>
+                <text y="75" class="medium subtext" text-anchor="middle">$percentage%</text>
             </g>
             """
-    }.joinToString("")}
+            }.joinToString("")
+        }
     </svg>
     """.trimIndent()
 
-    return svgContent
-}
+        return svgContent
+    }
 
     private fun getMostUsedLanguages(githubId: String): List<Pair<Language, SizeAndColor>> {
         val response = githubGraphQLClient.fetchUsedLanguages(githubId)
