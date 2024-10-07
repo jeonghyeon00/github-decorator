@@ -15,6 +15,7 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.*
 import kotlin.math.round
+import kotlin.math.roundToInt
 
 @Service
 class SvgService(
@@ -163,7 +164,7 @@ class SvgService(
         
         ${
             topLanguages.mapIndexed { index, (lang, sizeAndColor) ->
-                val percentage = (sizeAndColor.size / totalSize * 100).toInt()
+                val percentage = ((sizeAndColor.size / totalSize * 1000).roundToInt() / 10.0)
                 val yPos = 112
                 val xPos = 59 + index * 106
                 val rank = index + 1
@@ -197,12 +198,19 @@ class SvgService(
     private fun getMostUsedLanguages(githubId: String): List<Pair<Language, SizeAndColor>> {
         val response = githubGraphQLClient.fetchUsedLanguages(githubId)
         return response.data.user.repositories.nodes
-            .flatMap { it.languages.edges }
-            .map { Language.from(it.node.name) to SizeAndColor(it.size, it.node.color) }
-            .groupBy { it.first }
-            .mapValues { (_, edges) -> SizeAndColor(edges.sumOf { it.second.size }, color = edges.first().second.color) }
+            .flatMap { repo -> repo.languages.edges }
+            .groupBy(
+                keySelector = { Language.from(it.node.name) },
+                valueTransform = { SizeAndColor(it.size, it.node.color) }
+            )
+            .mapValues { (_, sizeAndColors) ->
+                SizeAndColor(
+                    size = sizeAndColors.sumOf { it.size },
+                    color = sizeAndColors.first().color
+                )
+            }
             .toList()
-            .sortedByDescending { it.second.size }
+            .sortedByDescending { (_, sizeAndColor) -> sizeAndColor.size }
     }
 
     private fun encodeImageToBase64(imagePath: String): String {
