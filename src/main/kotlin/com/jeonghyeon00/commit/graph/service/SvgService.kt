@@ -140,7 +140,7 @@ class SvgService(
         val strokeColor = if (theme == Theme.DARK) "#30363d" else "#e1e4e8"
 
         val svgContent = """
-    <svg width="400" height="280" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <svg width="400" height="245" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
         <style>
             .small { font: 14px 'Arial', sans-serif; }
             .medium { font: bold 16px 'Arial', sans-serif; }
