@@ -7,6 +7,7 @@ import com.jeonghyeon00.commit.graph.domain.ThemeColors
 import com.jeonghyeon00.commit.graph.infrastructure.github.GithubGraphQLClient
 import com.jeonghyeon00.commit.graph.infrastructure.github.GithubRestAPIClient
 import com.jeonghyeon00.commit.graph.infrastructure.github.dto.response.SearchCommitResponse
+import org.slf4j.LoggerFactory
 import org.springframework.cache.annotation.Cacheable
 import org.springframework.core.io.ClassPathResource
 import org.springframework.stereotype.Service
@@ -20,6 +21,8 @@ class SvgService(
     private val githubRestAPIClient: GithubRestAPIClient,
     private val githubGraphQLClient: GithubGraphQLClient
 ) {
+    private val logger = LoggerFactory.getLogger(this::class.java)
+
     @Cacheable("svg", key = "#githubId + #theme")
     fun generateSvg(githubId: String, theme: Theme?): String {
         val weekData = getCommitCountGroupByLocalDate(githubId)
@@ -128,11 +131,12 @@ class SvgService(
         }
     }
 
-//        @Cacheable("svgLanguage", key = "#githubId + #theme")
+    @Cacheable("svgLanguage", key = "#githubId + #theme")
     fun generateMostUsedLanguagesSvg(githubId: String, theme: Theme): String {
         val allLanguages = getMostUsedLanguages(githubId)
+        logger.info("githubId: $githubId allLanguages: $allLanguages")
         val totalSize = allLanguages.sumOf { it.second.size }.toFloat()
-        val topLanguages = allLanguages.take(3)
+        val topLanguages = allLanguages.filter { it.first != Language.OTHERS }.take(3)
 
         val backgroundColor = if (theme == Theme.DARK) "#000000" else "#ffffff"
         val textColor = if (theme == Theme.DARK) "#f5f5f7" else "#1d1d1f"
@@ -192,15 +196,11 @@ class SvgService(
 
     private fun getMostUsedLanguages(githubId: String): List<Pair<Language, SizeAndColor>> {
         val response = githubGraphQLClient.fetchUsedLanguages(githubId)
-        println(response)
         return response.data.user.repositories.nodes
             .flatMap { it.languages.edges }
-            .groupBy { it.node.name }
-            .mapKeys { (name, _) ->
-                Language.from(name)
-            }
-            .mapValues { (_, edges) -> SizeAndColor(edges.sumOf { it.size }, color = edges.first().node.color) }
-            .filter { it.key != Language.OTHERS }
+            .map { Language.from(it.node.name) to SizeAndColor(it.size, it.node.color) }
+            .groupBy { it.first }
+            .mapValues { (_, edges) -> SizeAndColor(edges.sumOf { it.second.size }, color = edges.first().second.color) }
             .toList()
             .sortedByDescending { it.second.size }
     }
