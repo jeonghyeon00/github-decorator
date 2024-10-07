@@ -16,10 +16,10 @@ class GithubGraphQLClient(
     private val restClient = RestClient.create()
     private val logger = LoggerFactory.getLogger(this::class.java)
 
-    fun fetchUsedLanguages(githubId: String): FetchUsedLanguagesResponse {
+    fun fetchUsedLanguages(nickname: String): FetchUsedLanguagesResponse {
         val query = """
             query User {
-                user(login: "$githubId") {
+                user(login: "$nickname") {
                     name
                     repositories(isFork: false, first: 100, ownerAffiliations: OWNER, orderBy: { field: UPDATED_AT, direction: DESC }) {
                         nodes {

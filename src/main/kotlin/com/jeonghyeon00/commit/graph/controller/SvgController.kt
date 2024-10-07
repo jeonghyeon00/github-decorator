@@ -24,9 +24,9 @@ class SvgController(
 
     @GetMapping("/languages", produces = ["image/svg+xml"])
     fun generateMostUsedLanguagesSvg(
-        @RequestParam githubId: String,
+        @RequestParam nickname: String,
         @RequestParam(defaultValue = "LIGHT") theme: Theme
     ): ResponseEntity<String> {
-        return ResponseEntity.ok().header(HttpHeaders.CACHE_CONTROL, "max-age=21600").body(svgService.generateMostUsedLanguagesSvg(githubId, theme))
+        return ResponseEntity.ok().header(HttpHeaders.CACHE_CONTROL, "max-age=21600").body(svgService.generateMostUsedLanguagesSvg(nickname, theme))
     }
 }

@@ -132,10 +132,10 @@ class SvgService(
         }
     }
 
-    @Cacheable("svgLanguage", key = "#githubId + #theme")
-    fun generateMostUsedLanguagesSvg(githubId: String, theme: Theme): String {
-        val allLanguages = getMostUsedLanguages(githubId)
-        logger.info("githubId: $githubId allLanguages: $allLanguages")
+    @Cacheable("svgLanguage", key = "#nickname + #theme")
+    fun generateMostUsedLanguagesSvg(nickname: String, theme: Theme): String {
+        val allLanguages = getMostUsedLanguages(nickname)
+        logger.info("nickname: $nickname allLanguages: $allLanguages")
         val totalSize = allLanguages.sumOf { it.second.size }.toFloat()
         val topLanguages = allLanguages.filter { it.first != Language.OTHERS }.take(3)
 
@@ -160,7 +160,7 @@ class SvgService(
         <rect width="100%" height="100%" class="background"/>
         
         <!-- Title -->
-        <text x="165" y="29" class="large text" text-anchor="middle">Top Languages for $githubId</text>
+        <text x="165" y="29" class="large text" text-anchor="middle">Top Languages for $nickname</text>
         
         ${
             topLanguages.mapIndexed { index, (lang, sizeAndColor) ->
@@ -195,8 +195,8 @@ class SvgService(
         return svgContent
     }
 
-    private fun getMostUsedLanguages(githubId: String): List<Pair<Language, SizeAndColor>> {
-        val response = githubGraphQLClient.fetchUsedLanguages(githubId)
+    private fun getMostUsedLanguages(nickname: String): List<Pair<Language, SizeAndColor>> {
+        val response = githubGraphQLClient.fetchUsedLanguages(nickname)
         return response.data.user.repositories.nodes
             .flatMap { repo -> repo.languages.edges }
             .groupBy(
