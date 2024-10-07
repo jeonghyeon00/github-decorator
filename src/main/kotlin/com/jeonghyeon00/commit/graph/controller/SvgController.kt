@@ -19,4 +19,12 @@ class SvgController(
     ): String {
         return svgService.generateSvg(githubId, theme)
     }
+
+    @GetMapping("/languages", produces = ["image/svg+xml"])
+    fun generateMostUsedLanguagesSvg(
+        @RequestParam githubId: String,
+        @RequestParam theme: Theme?
+    ): String {
+        return svgService.generateMostUsedLanguagesSvg(githubId)
+    }
 }
