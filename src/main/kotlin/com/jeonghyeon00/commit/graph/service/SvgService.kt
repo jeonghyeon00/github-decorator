@@ -18,7 +18,7 @@ import kotlin.math.round
 class SvgService(
     private val githubRestAPIClient: GithubRestAPIClient,
     private val githubGraphQLClient: GithubGraphQLClient,
-    @Value("\${server.address:http://localhost:8000}")
+    @Value("\${MY_SERVER_ADDRESS}")
     private val serverAddress: String
 ) {
     @Cacheable("svg", key = "#githubId + #theme")
