@@ -17,7 +17,7 @@ class GithubGraphQLClient(
             query User {
                 user(login: "$githubId") {
                     name
-                    repositories(isFork: false, first: 100, affiliations: OWNER, orderBy: { field: UPDATED_AT, direction: DESC }) {
+                    repositories(isFork: false, first: 100, ownerAffiliations: OWNER, orderBy: { field: UPDATED_AT, direction: DESC }) {
                         nodes {
                             name
                             languages(first: 10, orderBy: { field: SIZE, direction: DESC }) {
