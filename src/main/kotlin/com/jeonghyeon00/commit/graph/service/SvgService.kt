@@ -19,9 +19,7 @@ import kotlin.math.round
 @Service
 class SvgService(
     private val githubRestAPIClient: GithubRestAPIClient,
-    private val githubGraphQLClient: GithubGraphQLClient,
-    @Value("\${MY_SERVER_ADDRESS}")
-    private val serverAddress: String
+    private val githubGraphQLClient: GithubGraphQLClient
 ) {
     @Cacheable("svg", key = "#githubId + #theme")
     fun generateSvg(githubId: String, theme: Theme?): String {
@@ -197,7 +195,7 @@ class SvgService(
     }
 
     private fun encodeImageToBase64(imagePath: String): String {
-        val bytes = ClassPathResource(imagePath).file.readBytes()
+        val bytes = ClassPathResource(imagePath).inputStream.readBytes()
         return Base64.getEncoder().encodeToString(bytes)
     }
 }
