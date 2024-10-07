@@ -140,12 +140,12 @@ class SvgService(
         val strokeColor = if (theme == Theme.DARK) "#1d1d1f" else "#d2d2d7"
 
         val svgContent = """
-    <svg width="300" height="200" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <svg width="330" height="211" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
         <style>
-            @import url('https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@400;600&amp;display=swap');
-            .small { font: 400 10px 'SF Pro Display', sans-serif; }
-            .medium { font: 600 14px 'SF Pro Display', sans-serif; }
-            .large { font: 600 16px 'SF Pro Display', sans-serif; }
+            @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+            .small { font: 400 11px 'Pretendard', sans-serif; }
+            .medium { font: 600 14px 'Pretendard', sans-serif; }
+            .large { font: 600 18px 'Pretendard', sans-serif; }
             .background { fill: $backgroundColor; }
             .text { fill: $textColor; }
             .subtext { fill: $subtextColor; }
@@ -155,24 +155,24 @@ class SvgService(
         <rect width="100%" height="100%" class="background"/>
         
         <!-- Title -->
-        <text x="150" y="30" class="large text" text-anchor="middle">Top Languages for $githubId</text>
+        <text x="165" y="29" class="large text" text-anchor="middle">Top Languages for $githubId</text>
         
         ${
             topLanguages.mapIndexed { index, (lang, sizeAndColor) ->
                 val percentage = (sizeAndColor.size / totalSize * 100).toInt()
-                val yPos = 105
-                val xPos = 55 + index * 95
+                val yPos = 112
+                val xPos = 59 + index * 106
                 val rank = index + 1
                 val languageName = lang.value.lowercase()
                 val base64Image = encodeImageToBase64("static/images/${languageName}.svg")
                 """
             <!-- ${lang.value} -->
             <g transform="translate($xPos, $yPos)">
-                <circle r="32" fill="${sizeAndColor.color}" stroke="$strokeColor" stroke-width="1"/>
-                <image x="-20" y="-20" width="40" height="40" xlink:href="data:image/svg+xml;base64,$base64Image"/>
-                <text y="-45" class="medium text" text-anchor="middle">#$rank</text>
-                <text y="60" class="medium text" text-anchor="middle">${lang.value}</text>
-                <text y="75" class="medium subtext" text-anchor="middle">$percentage%</text>
+                <circle r="33" fill="${sizeAndColor.color}" stroke="$strokeColor" stroke-width="1"/>
+                <image x="-21" y="-21" width="42" height="42" xlink:href="data:image/svg+xml;base64,$base64Image"/>
+                <text y="-46" class="medium text" text-anchor="middle">#$rank</text>
+                <text y="61" class="small text" text-anchor="middle">${lang.value}</text>
+                <text y="77" class="small subtext" text-anchor="middle">$percentage%</text>
             </g>
             """
             }.joinToString("")
