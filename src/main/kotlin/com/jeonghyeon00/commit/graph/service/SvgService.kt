@@ -9,9 +9,11 @@ import com.jeonghyeon00.commit.graph.infrastructure.github.GithubRestAPIClient
 import com.jeonghyeon00.commit.graph.infrastructure.github.dto.response.SearchCommitResponse
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.cache.annotation.Cacheable
+import org.springframework.core.io.ClassPathResource
 import org.springframework.stereotype.Service
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+import java.util.*
 import kotlin.math.round
 
 @Service
@@ -162,11 +164,12 @@ class SvgService(
             val xPos = 70 + index * 130
             val rank = index + 1
             val languageName = lang.value.lowercase()
+            val base64Image = encodeImageToBase64("static/images/${languageName}.svg")
             """
             <!-- ${lang.value} -->
             <g transform="translate($xPos, $yPos)">
                 <circle r="40" fill="${sizeAndColor.color}" stroke="$strokeColor" stroke-width="2"/>
-                <image x="-25" y="-25" width="50" height="50" xlink:href="$serverAddress/images/${languageName}.svg"/>
+                <image x="-25" y="-25" width="50" height="50" xlink:href="data:image/svg+xml;base64,$base64Image"/>
                 <text y="-60" class="medium text" text-anchor="middle">#$rank</text>
                 <text y="75" class="small text" text-anchor="middle">${lang.value}</text>
                 <text y="95" class="small subtext" text-anchor="middle">$percentage%</text>
@@ -191,5 +194,10 @@ class SvgService(
             .filter { it.key != Language.OTHERS }
             .toList()
             .sortedByDescending { it.second.size }
+    }
+
+    private fun encodeImageToBase64(imagePath: String): String {
+        val bytes = ClassPathResource(imagePath).file.readBytes()
+        return Base64.getEncoder().encodeToString(bytes)
     }
 }
