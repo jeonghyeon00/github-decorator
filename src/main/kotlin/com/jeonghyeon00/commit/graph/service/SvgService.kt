@@ -7,6 +7,7 @@ import com.jeonghyeon00.commit.graph.domain.ThemeColors
 import com.jeonghyeon00.commit.graph.infrastructure.github.GithubGraphQLClient
 import com.jeonghyeon00.commit.graph.infrastructure.github.GithubRestAPIClient
 import com.jeonghyeon00.commit.graph.infrastructure.github.dto.response.SearchCommitResponse
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.cache.annotation.Cacheable
 import org.springframework.stereotype.Service
 import java.time.LocalDate
@@ -16,7 +17,9 @@ import kotlin.math.round
 @Service
 class SvgService(
     private val githubRestAPIClient: GithubRestAPIClient,
-    private val githubGraphQLClient: GithubGraphQLClient
+    private val githubGraphQLClient: GithubGraphQLClient,
+    @Value("\${server.address:http://localhost:8000}")
+    private val serverAddress: String
 ) {
     @Cacheable("svg", key = "#githubId + #theme")
     fun generateSvg(githubId: String, theme: Theme?): String {
@@ -126,20 +129,25 @@ class SvgService(
         }
     }
 
-    fun generateMostUsedLanguagesSvg(githubId: String): String {
+    fun generateMostUsedLanguagesSvg(githubId: String, theme: Theme? = Theme.LIGHT): String {
         val allLanguages = getMostUsedLanguages(githubId)
         val totalSize = allLanguages.sumOf { it.second.size }.toFloat()
         val topLanguages = allLanguages.take(3)
 
+        val backgroundColor = if (theme == Theme.DARK) "#0d1117" else "#f6f8fa"
+        val textColor = if (theme == Theme.DARK) "#c9d1d9" else "#24292e"
+        val subtextColor = if (theme == Theme.DARK) "#8b949e" else "#6a737d"
+        val strokeColor = if (theme == Theme.DARK) "#30363d" else "#e1e4e8"
+
         val svgContent = """
-    <svg width="400" height="250" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <svg width="400" height="280" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
         <style>
             .small { font: 14px 'Arial', sans-serif; }
             .medium { font: bold 16px 'Arial', sans-serif; }
             .large { font: bold 18px 'Arial', sans-serif; }
-            .background { fill: #f6f8fa; }
-            .text { fill: #24292e; }
-            .subtext { fill: #6a737d; }
+            .background { fill: $backgroundColor; }
+            .text { fill: $textColor; }
+            .subtext { fill: $subtextColor; }
         </style>
         
         <!-- Background -->
@@ -157,10 +165,11 @@ class SvgService(
             """
             <!-- ${lang.value} -->
             <g transform="translate($xPos, $yPos)">
-                <circle r="40" fill="${sizeAndColor.color}" stroke="#e1e4e8" stroke-width="2"/>
-                <image x="-25" y="-25" width="50" height="50" xlink:href="/images/${languageName}.svg"/>
-                <text y="-50" class="medium text" text-anchor="middle">#$rank</text>
-                <text y="55" class="small subtext" text-anchor="middle">$percentage%</text>
+                <circle r="40" fill="${sizeAndColor.color}" stroke="$strokeColor" stroke-width="2"/>
+                <image x="-25" y="-25" width="50" height="50" xlink:href="$serverAddress/images/${languageName}.svg"/>
+                <text y="-60" class="medium text" text-anchor="middle">#$rank</text>
+                <text y="75" class="small text" text-anchor="middle">${lang.value}</text>
+                <text y="95" class="small subtext" text-anchor="middle">$percentage%</text>
             </g>
             """
         }.joinToString("")}
@@ -170,7 +179,7 @@ class SvgService(
         return svgContent
     }
 
-    fun getMostUsedLanguages(githubId: String): List<Pair<Language, SizeAndColor>> {
+    private fun getMostUsedLanguages(githubId: String): List<Pair<Language, SizeAndColor>> {
         val response = githubGraphQLClient.fetchUsedLanguages(githubId)
         return response.data.user.repositories.nodes
             .flatMap { it.languages.edges }

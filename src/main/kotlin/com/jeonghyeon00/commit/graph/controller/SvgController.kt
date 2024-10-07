@@ -25,6 +25,6 @@ class SvgController(
         @RequestParam githubId: String,
         @RequestParam theme: Theme?
     ): String {
-        return svgService.generateMostUsedLanguagesSvg(githubId)
+        return svgService.generateMostUsedLanguagesSvg(githubId, theme)
     }
 }
