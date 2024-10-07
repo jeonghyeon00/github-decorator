@@ -132,7 +132,7 @@ class SvgService(
         }
     }
 
-//    @Cacheable("svgLanguage", key = "#nickname + #theme")
+    @Cacheable("svgLanguage", key = "#nickname + #theme")
     fun generateMostUsedLanguagesSvg(nickname: String, theme: Theme): String {
         val allLanguages = getMostUsedLanguages(nickname)
         logger.info("nickname: $nickname allLanguages: $allLanguages")
