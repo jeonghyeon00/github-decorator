@@ -128,7 +128,7 @@ class SvgService(
         }
     }
 
-        @Cacheable("svgLanguage", key = "#githubId + #theme")
+//        @Cacheable("svgLanguage", key = "#githubId + #theme")
     fun generateMostUsedLanguagesSvg(githubId: String, theme: Theme): String {
         val allLanguages = getMostUsedLanguages(githubId)
         val totalSize = allLanguages.sumOf { it.second.size }.toFloat()
@@ -192,6 +192,7 @@ class SvgService(
 
     private fun getMostUsedLanguages(githubId: String): List<Pair<Language, SizeAndColor>> {
         val response = githubGraphQLClient.fetchUsedLanguages(githubId)
+        println(response)
         return response.data.user.repositories.nodes
             .flatMap { it.languages.edges }
             .groupBy { it.node.name }

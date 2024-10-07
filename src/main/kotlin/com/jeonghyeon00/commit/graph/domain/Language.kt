@@ -14,6 +14,7 @@ enum class Language(val value: String) {
     PYTHON("Python"),
     RUBY("Ruby"),
     SHELL("Shell"),
+    JUPYTER_NOTEBOOK("Jupyter Notebook"),
     OTHERS("Others")
     ;
 
