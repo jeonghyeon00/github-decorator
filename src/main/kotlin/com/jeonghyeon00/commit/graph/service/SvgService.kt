@@ -7,7 +7,6 @@ import com.jeonghyeon00.commit.graph.domain.ThemeColors
 import com.jeonghyeon00.commit.graph.infrastructure.github.GithubGraphQLClient
 import com.jeonghyeon00.commit.graph.infrastructure.github.GithubRestAPIClient
 import com.jeonghyeon00.commit.graph.infrastructure.github.dto.response.SearchCommitResponse
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.cache.annotation.Cacheable
 import org.springframework.core.io.ClassPathResource
 import org.springframework.stereotype.Service
@@ -101,7 +100,7 @@ class SvgService(
         return svg.toString()
     }
 
-    fun getCommitCountGroupByLocalDate(githubId: String): List<Pair<LocalDate, Int>> {
+    private fun getCommitCountGroupByLocalDate(githubId: String): List<Pair<LocalDate, Int>> {
         var page = 0
         val items = mutableListOf<SearchCommitResponse.Item>()
         val oneWeekAgo = LocalDate.now().minusWeeks(1)
@@ -129,7 +128,8 @@ class SvgService(
         }
     }
 
-    fun generateMostUsedLanguagesSvg(githubId: String, theme: Theme? = Theme.LIGHT): String {
+    @Cacheable("svgLanguage", key = "#githubId + #theme")
+    fun generateMostUsedLanguagesSvg(githubId: String, theme: Theme): String {
         val allLanguages = getMostUsedLanguages(githubId)
         val totalSize = allLanguages.sumOf { it.second.size }.toFloat()
         val topLanguages = allLanguages.take(3)
