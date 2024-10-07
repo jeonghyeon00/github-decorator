@@ -128,7 +128,7 @@ class SvgService(
         }
     }
 
-    @Cacheable("svgLanguage", key = "#githubId + #theme")
+//    @Cacheable("svgLanguage", key = "#githubId + #theme")
     fun generateMostUsedLanguagesSvg(githubId: String, theme: Theme): String {
         val allLanguages = getMostUsedLanguages(githubId)
         val totalSize = allLanguages.sumOf { it.second.size }.toFloat()
@@ -143,7 +143,7 @@ class SvgService(
     <svg width="330" height="211" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
         <style>
             @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
-            .small { font: 400 11px 'Pretendard', sans-serif; }
+            .small { font: 400 12px 'Pretendard', sans-serif; }
             .medium { font: 600 14px 'Pretendard', sans-serif; }
             .large { font: 600 18px 'Pretendard', sans-serif; }
             .background { fill: $backgroundColor; }
@@ -171,8 +171,8 @@ class SvgService(
                 <circle r="33" fill="${sizeAndColor.color}" stroke="$strokeColor" stroke-width="1"/>
                 <image x="-21" y="-21" width="42" height="42" xlink:href="data:image/svg+xml;base64,$base64Image"/>
                 <text y="-46" class="medium text" text-anchor="middle">#$rank</text>
-                <text y="61" class="small text" text-anchor="middle">${lang.value}</text>
-                <text y="77" class="small subtext" text-anchor="middle">$percentage%</text>
+                <text y="61" class="medium text" text-anchor="middle">${lang.value}</text>
+                <text y="77" class="medium subtext" text-anchor="middle">$percentage%</text>
             </g>
             """
             }.joinToString("")
