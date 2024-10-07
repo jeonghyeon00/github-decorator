@@ -164,7 +164,7 @@ class SvgService(
         
         ${
             topLanguages.mapIndexed { index, (lang, sizeAndColor) ->
-                val percentage = ((sizeAndColor.size / totalSize * 1000).roundToInt() / 10.0)
+                val percentage = ((sizeAndColor.size / totalSize * 100 * 100).roundToInt() / 100.0)
                 val yPos = 112
                 val xPos = 59 + index * 106
                 val rank = index + 1
