@@ -16,6 +16,7 @@ class SvgService(
     private val githubGraphQLClient: GithubGraphQLClient
 ) {
     private val logger = LoggerFactory.getLogger(this::class.java)
+
     @Cacheable("svgLanguage", key = "#nickname + #theme")
     fun generateMostUsedLanguagesSvg(nickname: String, theme: Theme): String {
         val allLanguages = getMostUsedLanguages(nickname)
@@ -104,39 +105,56 @@ class SvgService(
 
     @Cacheable("svgText", key = "#text + #theme")
     fun generateAnimatedSvg(text: String, theme: Theme): String {
-        // Theme에 따른 배경 및 그라데이션 색상 설정
-        val backgroundColor = if (theme == Theme.DARK) "#2c3e50" else "#ecf0f1"  // Dark or Light background
-        val startColor = if (theme == Theme.DARK) "#8e44ad" else "#3498db"      // 그라데이션 시작 색상
-        val endColor = if (theme == Theme.DARK) "#f39c12" else "#e74c3c"        // 그라데이션 끝 색상
-        val textColor = if (theme == Theme.DARK) "#ecf0f1" else "#2c3e50"       // 기본 텍스트 색상
+        val backgroundColor = if (theme == Theme.DARK) "#0f0f0f" else "#ffffff"
+        val accentColor = if (theme == Theme.DARK) "#5ac8fa" else "#007aff"
+        val patternColor = if (theme == Theme.DARK) "#ffffff10" else "#00000008"
+        val lineColor = if (theme == Theme.DARK) "#ffffff30" else "#00000015"
 
         return """
-        <svg width="500" height="150" xmlns="http://www.w3.org/2000/svg" style="background-color: $backgroundColor;">
-            <defs>
-                <!-- 텍스트에 적용될 그라데이션 정의 -->
-                <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" style="stop-color:$startColor;stop-opacity:1" />
-                    <stop offset="100%" style="stop-color:$endColor;stop-opacity:1" />
-                </linearGradient>
-            </defs>
-            
-            <style>
-                .fade-in-text {
-                    font: bold 50px 'Helvetica Neue', sans-serif;
-                    fill: url(#grad1); /* 텍스트에 그라데이션 적용 */
-                    opacity: 0;
-                }
-                .fade-in-text:hover {
-                    fill: $textColor; /* 마우스 오버 시 텍스트 색상 변경 */
-                }
-            </style>
-
-            <!-- 텍스트 애니메이션 -->
-            <text x="50%" y="50%" text-anchor="middle" dominant-baseline="middle" class="fade-in-text">
-                <animate attributeName="opacity" from="0" to="1" dur="3s" fill="freeze" />
-                $text
-            </text>
-        </svg>
-        """.trimIndent()
+    <svg width="500" height="150" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+            <pattern id="dotPattern" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse">
+                <circle cx="2" cy="2" r="1" fill="$patternColor"/>
+            </pattern>
+            <linearGradient id="textGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" style="stop-color:$accentColor;stop-opacity:1" />
+                <stop offset="100%" style="stop-color:${if (theme == Theme.DARK) "#af52de" else "#5856d6"};stop-opacity:1" />
+            </linearGradient>
+        </defs>
+        
+        <style>
+            @import url('https://fonts.googleapis.com/css2?family=Inter:wght@700&amp;display=swap');
+            .background { fill: $backgroundColor; }
+            .pattern { fill: url(#dotPattern); opacity: ${if (theme == Theme.DARK) "0.8" else "0.5"}; }
+            .text {
+                font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+                font-weight: 700;
+                font-size: 40px;
+                fill: url(#textGradient);
+            }
+            .decoration {
+                fill: none;
+                stroke: $lineColor;
+                stroke-width: 1.5;
+            }
+            .accent {
+                fill: $accentColor;
+            }
+        </style>
+        <rect width="100%" height="100%" class="background"/>
+        <rect width="100%" height="100%" class="pattern"/>
+        <!-- Decorative elements -->
+        <path d="M0 30 Q250 0 500 30" class="decoration">
+            <animate attributeName="d" from="M0 30 Q250 30 500 30" to="M0 30 Q250 0 500 30" dur="3s" repeatCount="indefinite" />
+        </path>
+        <path d="M0 120 Q250 150 500 120" class="decoration">
+            <animate attributeName="d" from="M0 120 Q250 120 500 120" to="M0 120 Q250 150 500 120" dur="3s" repeatCount="indefinite" />
+        </path>
+        <text x="50%" y="50%" text-anchor="middle" dominant-baseline="middle" class="text">
+            $text
+            <animate attributeName="opacity" from="0" to="1" dur="1.5s" fill="freeze" />
+        </text>
+    </svg>
+    """.trimIndent()
     }
 }
