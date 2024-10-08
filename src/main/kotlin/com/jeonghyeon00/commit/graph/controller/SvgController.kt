@@ -14,14 +14,6 @@ import org.springframework.web.bind.annotation.RestController
 class SvgController(
     private val svgService: SvgService
 ) {
-    @GetMapping(produces = ["image/svg+xml"])
-    fun generateSvg(
-        @RequestParam githubId: String,
-        @RequestParam theme: Theme?
-    ): String {
-        return svgService.generateSvg(githubId, theme)
-    }
-
     @GetMapping("/languages", produces = ["image/svg+xml"])
     fun generateMostUsedLanguagesSvg(
         @RequestParam nickname: String,
