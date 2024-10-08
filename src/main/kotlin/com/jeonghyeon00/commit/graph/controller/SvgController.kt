@@ -21,4 +21,12 @@ class SvgController(
     ): ResponseEntity<String> {
         return ResponseEntity.ok().header(HttpHeaders.CACHE_CONTROL, "max-age=21600").body(svgService.generateMostUsedLanguagesSvg(nickname, theme))
     }
+
+    @GetMapping("/text", produces = ["image/svg+xml"])
+    fun getAnimatedSvg(
+        @RequestParam text: String,
+        @RequestParam(defaultValue = "LIGHT") theme: Theme
+    ): ResponseEntity<String> {
+        return ResponseEntity.ok().header(HttpHeaders.CACHE_CONTROL, "max-age=21600").body(svgService.generateAnimatedSvg(text, theme))
+    }
 }

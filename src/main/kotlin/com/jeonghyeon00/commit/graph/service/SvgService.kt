@@ -101,4 +101,42 @@ class SvgService(
         val bytes = ClassPathResource(imagePath).inputStream.readBytes()
         return Base64.getEncoder().encodeToString(bytes)
     }
+
+    @Cacheable("svgText", key = "#text + #theme")
+    fun generateAnimatedSvg(text: String, theme: Theme): String {
+        // Theme에 따른 배경 및 그라데이션 색상 설정
+        val backgroundColor = if (theme == Theme.DARK) "#2c3e50" else "#ecf0f1"  // Dark or Light background
+        val startColor = if (theme == Theme.DARK) "#8e44ad" else "#3498db"      // 그라데이션 시작 색상
+        val endColor = if (theme == Theme.DARK) "#f39c12" else "#e74c3c"        // 그라데이션 끝 색상
+        val textColor = if (theme == Theme.DARK) "#ecf0f1" else "#2c3e50"       // 기본 텍스트 색상
+
+        return """
+        <svg width="500" height="150" xmlns="http://www.w3.org/2000/svg" style="background-color: $backgroundColor;">
+            <defs>
+                <!-- 텍스트에 적용될 그라데이션 정의 -->
+                <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" style="stop-color:$startColor;stop-opacity:1" />
+                    <stop offset="100%" style="stop-color:$endColor;stop-opacity:1" />
+                </linearGradient>
+            </defs>
+            
+            <style>
+                .fade-in-text {
+                    font: bold 50px 'Helvetica Neue', sans-serif;
+                    fill: url(#grad1); /* 텍스트에 그라데이션 적용 */
+                    opacity: 0;
+                }
+                .fade-in-text:hover {
+                    fill: $textColor; /* 마우스 오버 시 텍스트 색상 변경 */
+                }
+            </style>
+
+            <!-- 텍스트 애니메이션 -->
+            <text x="50%" y="50%" text-anchor="middle" dominant-baseline="middle" class="fade-in-text">
+                <animate attributeName="opacity" from="0" to="1" dur="3s" fill="freeze" />
+                $text
+            </text>
+        </svg>
+        """.trimIndent()
+    }
 }
