@@ -106,7 +106,7 @@ class SvgService(
 
     @Cacheable(Caches.SVG_TEXT, key = "#text + #theme")
     fun generateAnimatedSvg(text: String, theme: Theme): String {
-        val backgroundColor = if (theme == Theme.DARK) "#0f0f0f" else "#ffffff"
+        val backgroundColor = if (theme == Theme.DARK) "#000000" else "#ffffff"
         val accentColor = if (theme == Theme.DARK) "#5ac8fa" else "#007aff"
         val patternColor = if (theme == Theme.DARK) "#ffffff10" else "#00000008"
         val lineColor = if (theme == Theme.DARK) "#ffffff30" else "#00000015"
