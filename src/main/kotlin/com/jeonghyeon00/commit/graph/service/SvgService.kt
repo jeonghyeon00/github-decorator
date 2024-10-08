@@ -1,5 +1,6 @@
 package com.jeonghyeon00.commit.graph.service
 
+import com.jeonghyeon00.commit.graph.config.Caches
 import com.jeonghyeon00.commit.graph.domain.Language
 import com.jeonghyeon00.commit.graph.domain.SizeAndColor
 import com.jeonghyeon00.commit.graph.domain.Theme
@@ -17,7 +18,7 @@ class SvgService(
 ) {
     private val logger = LoggerFactory.getLogger(this::class.java)
 
-    @Cacheable("svgLanguage", key = "#nickname + #theme")
+    @Cacheable(Caches.SVG_LANGUAGE, key = "#nickname + #theme")
     fun generateMostUsedLanguagesSvg(nickname: String, theme: Theme): String {
         val allLanguages = getMostUsedLanguages(nickname)
         logger.info("nickname: $nickname allLanguages: $allLanguages")
@@ -103,7 +104,7 @@ class SvgService(
         return Base64.getEncoder().encodeToString(bytes)
     }
 
-    @Cacheable("svgText", key = "#text + #theme")
+    @Cacheable(Caches.SVG_TEXT, key = "#text + #theme")
     fun generateAnimatedSvg(text: String, theme: Theme): String {
         val backgroundColor = if (theme == Theme.DARK) "#0f0f0f" else "#ffffff"
         val accentColor = if (theme == Theme.DARK) "#5ac8fa" else "#007aff"
