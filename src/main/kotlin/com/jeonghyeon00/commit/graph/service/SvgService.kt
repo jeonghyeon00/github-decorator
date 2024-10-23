@@ -16,6 +16,10 @@ import kotlin.math.roundToInt
 class SvgService(
     private val githubGraphQLClient: GithubGraphQLClient
 ) {
+    companion object {
+        const val LINK = "https://github.com/jeonghyeon00/github-decorator"
+    }
+
     private val logger = LoggerFactory.getLogger(this::class.java)
 
     @Cacheable(Caches.SVG_LANGUAGE, key = "#nickname + #theme")
@@ -41,12 +45,12 @@ class SvgService(
             .text { fill: $textColor; }
             .subtext { fill: $subtextColor; }
         </style>
-        
-        <!-- Background -->
-        <rect width="100%" height="100%" class="background"/>
-        
-        <!-- Title -->
-        <text x="165" y="29" class="large text" text-anchor="middle">Top Languages for $nickname</text>
+        <a href="$LINK" target="_blank">
+            <!-- Background -->
+            <rect width="100%" height="100%" class="background"/>
+            
+            <!-- Title -->
+            <text x="165" y="29" class="large text" text-anchor="middle">Top Languages for $nickname</text>
         
         ${
             topLanguages.mapIndexed { index, (lang, sizeAndColor) ->
@@ -75,6 +79,7 @@ class SvgService(
             """
             }.joinToString("")
         }
+        </a>
     </svg>
     """.trimIndent()
 
@@ -142,19 +147,21 @@ class SvgService(
                 fill: $accentColor;
             }
         </style>
-        <rect width="100%" height="100%" class="background"/>
-        <rect width="100%" height="100%" class="pattern"/>
-        <!-- Decorative elements -->
-        <path d="M0 30 Q250 0 500 30" class="decoration">
-            <animate attributeName="d" from="M0 30 Q250 30 500 30" to="M0 30 Q250 0 500 30" dur="3s" repeatCount="indefinite" />
-        </path>
-        <path d="M0 120 Q250 150 500 120" class="decoration">
-            <animate attributeName="d" from="M0 120 Q250 120 500 120" to="M0 120 Q250 150 500 120" dur="3s" repeatCount="indefinite" />
-        </path>
-        <text x="50%" y="50%" text-anchor="middle" dominant-baseline="middle" class="text">
-            $text
-            <animate attributeName="opacity" from="0" to="1" dur="1.5s" fill="freeze" />
+        <a href="$LINK" target="_blank">
+            <rect width="100%" height="100%" class="background"/>
+            <rect width="100%" height="100%" class="pattern"/>
+            <!-- Decorative elements -->
+            <path d="M0 30 Q250 0 500 30" class="decoration">
+                <animate attributeName="d" from="M0 30 Q250 30 500 30" to="M0 30 Q250 0 500 30" dur="3s" repeatCount="indefinite" />
+            </path>
+            <path d="M0 120 Q250 150 500 120" class="decoration">
+                <animate attributeName="d" from="M0 120 Q250 120 500 120" to="M0 120 Q250 150 500 120" dur="3s" repeatCount="indefinite" />
+            </path>
+            <text x="50%" y="50%" text-anchor="middle" dominant-baseline="middle" class="text">
+                $text
+                <animate attributeName="opacity" from="0" to="1" dur="1.5s" fill="freeze" />
         </text>
+        </a>
     </svg>
     """.trimIndent()
     }
