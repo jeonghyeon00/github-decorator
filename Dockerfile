@@ -14,7 +14,7 @@ COPY src ./src
 RUN gradle bootJar --no-daemon
 
 # Package stage
-FROM openjdk:17-jdk-slim
+FROM openjdk:17.0.2-jdk-slim
 WORKDIR /app
 
 # Copy the built jar from the build stage
